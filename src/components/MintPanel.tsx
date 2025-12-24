@@ -70,9 +70,6 @@ export default function MintPanel() {
   return (
     <div className="rounded-xl border border-slate-200 bg-white/90 p-4">
       <p className="text-sm font-semibold text-slate-900">Mint your Base badge</p>
-      <p className="mt-1 text-xs text-slate-500">
-        Free mint. You will still pay Base gas fees.
-      </p>
 
       {!isConnected && (
         <div className="mt-4 space-y-2">

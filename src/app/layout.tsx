@@ -8,6 +8,9 @@ import { APP_NAME, APP_DESCRIPTION } from '~/lib/constants';
 export const metadata: Metadata = {
   title: APP_NAME,
   description: APP_DESCRIPTION,
+  other: {
+    'base:app_id': '694b4f84c63ad876c90810fa',
+  },
 };
 
 const spaceGrotesk = Space_Grotesk({
