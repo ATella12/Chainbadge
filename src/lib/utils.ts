@@ -11,7 +11,6 @@ import {
   APP_SPLASH_URL,
   APP_TAGS,
   APP_URL,
-  APP_WEBHOOK_URL,
   APP_ACCOUNT_ASSOCIATION,
 } from './constants';
 
@@ -63,19 +62,18 @@ export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
 }
 
 export async function getFarcasterDomainManifest(): Promise<MiniAppManifest> {
-  const webhookUrl = APP_WEBHOOK_URL;
+  const manifestImageUrl = `${APP_URL}/chainbadge.png`;
   return {
     accountAssociation: APP_ACCOUNT_ASSOCIATION!,
     miniapp: {
       version: '1',
       name: APP_NAME ?? 'ChainCheck Quiz',
       homeUrl: APP_URL,
-      iconUrl: APP_ICON_URL,
-      imageUrl: APP_OG_IMAGE_URL,
+      iconUrl: manifestImageUrl,
+      imageUrl: manifestImageUrl,
       buttonTitle: APP_BUTTON_TEXT ?? 'Launch Mini App',
-      splashImageUrl: APP_SPLASH_URL,
+      splashImageUrl: manifestImageUrl,
       splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
-      ...(webhookUrl ? { webhookUrl } : {}),
     },
   };
 }

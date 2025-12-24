@@ -1,5 +1,5 @@
 export const APP_URL: string =
-  process.env.NEXT_PUBLIC_URL || 'http://localhost:3000';
+  process.env.NEXT_PUBLIC_URL || 'https://chainbadge.vercel.app';
 
 export const APP_NAME: string = 'ChainCheck Quiz';
 export const APP_DESCRIPTION: string =
@@ -13,9 +13,11 @@ export const APP_SPLASH_URL: string = `${APP_URL}/splash.png`;
 export const APP_SPLASH_BACKGROUND_COLOR: string = '#f6efe7';
 
 export const APP_ACCOUNT_ASSOCIATION = {
-  header: 'REPLACE_ME',
-  payload: 'REPLACE_ME',
-  signature: 'REPLACE_ME',
+  header:
+    'eyJmaWQiOjY5NjAxOCwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDRGNEYzMjZkRTZFQ2FkNTMxNDkwMEJiMWFFRDg3RDYzNTlmQjNBNDIifQ',
+  payload: 'eyJkb21haW4iOiJjaGFpbmJhZGdlLnZlcmNlbC5hcHAifQ',
+  signature:
+    '+d4os8c9XWYVtBtdB73JGEJA4gfA3vXT4kwavn8nH7VfiDnbhW21tX+scuXQXM3pAFQ9ok0SHh/jw+IMSkaENxw=',
 };
 
 export const APP_BUTTON_TEXT: string = 'Start Quiz';
