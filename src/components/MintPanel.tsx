@@ -1,9 +1,13 @@
 'use client';
 
 import { useMemo } from 'react';
+import { encodeFunctionData } from 'viem';
 import {
   useAccount,
   useConnect,
+  useCapabilities,
+  useCallsStatus,
+  useSendCalls,
   useSwitchChain,
   useWriteContract,
   useWaitForTransactionReceipt,
@@ -27,6 +31,7 @@ export default function MintPanel() {
   const chainId = useChainId();
   const { connectors, connect, isPending: isConnecting, error: connectError } =
     useConnect();
+  const { data: capabilities } = useCapabilities({ chainId: base.id });
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
   const {
     writeContractAsync,
@@ -34,9 +39,24 @@ export default function MintPanel() {
     isPending: isWriting,
     error: writeError,
   } = useWriteContract();
+  const {
+    sendCallsAsync,
+    data: callsId,
+    isPending: isSendingCalls,
+    error: sendCallsError,
+  } = useSendCalls();
+  const callsStatusQuery = useCallsStatus({
+    id: callsId as `0x${string}`,
+    query: { enabled: Boolean(callsId), refetchInterval: 1500 },
+  });
+  const callsStatus = callsStatusQuery.data;
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
     hash: txHash,
   });
+
+  const supportsSendCalls =
+    capabilities?.atomic?.status === 'supported' ||
+    capabilities?.atomic?.status === 'ready';
 
   const isWrongNetwork = isConnected && chainId !== base.id;
   const farcasterConnector = useMemo(() => {
@@ -56,6 +76,22 @@ export default function MintPanel() {
     }
     if (chainId !== base.id) {
       await switchChainAsync({ chainId: base.id });
+    }
+    if (supportsSendCalls) {
+      const data = encodeFunctionData({
+        abi: chainCheckBadgeAbi,
+        functionName: 'mint',
+      });
+      try {
+        await sendCallsAsync({
+          calls: [{ to: badgeAddress, data, value: 0n }],
+          chainId: base.id,
+          ...withBuilderCodeCapabilities(builderCode),
+        });
+        return;
+      } catch {
+        // Fallback to a direct write if sendCalls isn't supported end-to-end.
+      }
     }
     await writeContractAsync({
       address: badgeAddress,
@@ -136,23 +172,49 @@ export default function MintPanel() {
           <button
             type="button"
             onClick={handleMint}
-            disabled={isWriting || isConfirming || isWrongNetwork}
+            disabled={
+              isWriting ||
+              isConfirming ||
+              isSendingCalls ||
+              callsStatus?.status === 'pending' ||
+              isWrongNetwork
+            }
             className="w-full rounded-lg border border-emerald-500 bg-emerald-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600 disabled:opacity-60"
           >
-            {isWriting || isConfirming ? 'Minting...' : 'Mint Badge'}
+            {isWriting || isConfirming || isSendingCalls
+              ? 'Minting...'
+              : supportsSendCalls
+                ? 'Mint (Attributed)'
+                : 'Mint Badge'}
           </button>
 
-          {writeError && (
-            <p className="text-xs text-rose-600">{writeError.message}</p>
+          {(sendCallsError || writeError) && (
+            <p className="text-xs text-rose-600">
+              {(sendCallsError ?? writeError)?.message}
+            </p>
           )}
 
-          {txHash && (
+          {callsStatus?.receipts?.[0]?.transactionHash && (
+            <p className="text-xs text-slate-600">
+              Tx:{' '}
+              <a
+                className="underline"
+                href={`${basescanBase}${callsStatus.receipts[0].transactionHash}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View on Basescan
+              </a>
+            </p>
+          )}
+
+          {txHash && !callsStatus?.receipts?.[0]?.transactionHash && (
             <p className="text-xs text-slate-600">
               Tx: <a className="underline" href={`${basescanBase}${txHash}`} target="_blank" rel="noreferrer">View on Basescan</a>
             </p>
           )}
 
-          {isSuccess && (
+          {(isSuccess || callsStatus?.status === 'success') && (
             <p className="text-xs font-semibold text-emerald-600">Minted!</p>
           )}
         </div>
