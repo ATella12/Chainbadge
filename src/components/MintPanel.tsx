@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
-import { encodeFunctionData } from 'viem';
+import { encodeFunctionData, type Hex } from 'viem';
 import {
   useAccount,
   useConnect,
@@ -9,7 +9,7 @@ import {
   useCallsStatus,
   useSendCalls,
   useSwitchChain,
-  useWriteContract,
+  useSendTransaction,
   useWaitForTransactionReceipt,
   useChainId,
 } from 'wagmi';
@@ -17,6 +17,7 @@ import { base } from 'wagmi/chains';
 import { chainCheckBadgeAbi } from '~/abi/chainCheckBadgeAbi';
 import { badgeAddress } from '~/lib/badge';
 import {
+  appendBuilderCodeToCalldata,
   getBuilderCode,
   withBuilderCodeCapabilities,
 } from '~/lib/baseAttribution';
@@ -34,11 +35,11 @@ export default function MintPanel() {
   const { data: capabilities } = useCapabilities({ chainId: base.id });
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
   const {
-    writeContractAsync,
+    sendTransactionAsync,
     data: txHash,
-    isPending: isWriting,
-    error: writeError,
-  } = useWriteContract();
+    isPending: isSendingTx,
+    error: sendTxError,
+  } = useSendTransaction();
   const {
     sendCallsAsync,
     data: callsId,
@@ -77,14 +78,14 @@ export default function MintPanel() {
     if (chainId !== base.id) {
       await switchChainAsync({ chainId: base.id });
     }
+    const baseData = encodeFunctionData({
+      abi: chainCheckBadgeAbi,
+      functionName: 'mint',
+    }) as Hex;
     if (supportsSendCalls) {
-      const data = encodeFunctionData({
-        abi: chainCheckBadgeAbi,
-        functionName: 'mint',
-      });
       try {
         await sendCallsAsync({
-          calls: [{ to: badgeAddress, data, value: 0n }],
+          calls: [{ to: badgeAddress, data: baseData, value: 0n }],
           chainId: base.id,
           ...withBuilderCodeCapabilities(builderCode),
         });
@@ -93,11 +94,12 @@ export default function MintPanel() {
         // Fallback to a direct write if sendCalls isn't supported end-to-end.
       }
     }
-    await writeContractAsync({
-      address: badgeAddress,
-      abi: chainCheckBadgeAbi,
-      functionName: 'mint',
-      ...withBuilderCodeCapabilities(builderCode),
+    const data = appendBuilderCodeToCalldata(baseData, builderCode);
+    await sendTransactionAsync({
+      to: badgeAddress,
+      data,
+      value: 0n,
+      chainId: base.id,
     });
   };
 
@@ -173,7 +175,7 @@ export default function MintPanel() {
             type="button"
             onClick={handleMint}
             disabled={
-              isWriting ||
+              isSendingTx ||
               isConfirming ||
               isSendingCalls ||
               callsStatus?.status === 'pending' ||
@@ -181,16 +183,16 @@ export default function MintPanel() {
             }
             className="w-full rounded-lg border border-emerald-500 bg-emerald-500 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-600 disabled:opacity-60"
           >
-            {isWriting || isConfirming || isSendingCalls
+            {isSendingTx || isConfirming || isSendingCalls
               ? 'Minting...'
               : supportsSendCalls
                 ? 'Mint (Attributed)'
                 : 'Mint Badge'}
           </button>
 
-          {(sendCallsError || writeError) && (
+          {(sendCallsError || sendTxError) && (
             <p className="text-xs text-rose-600">
-              {(sendCallsError ?? writeError)?.message}
+              {(sendCallsError ?? sendTxError)?.message}
             </p>
           )}
 

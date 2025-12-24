@@ -1,4 +1,4 @@
-import type { Capabilities } from 'viem';
+import { concatHex, type Capabilities, type Hex } from 'viem';
 import { Attribution } from 'ox/erc8021';
 
 const FALLBACK_BUILDER_CODE = 'bc_0ecex30k';
@@ -17,4 +17,13 @@ export function withBuilderCodeCapabilities(
       dataSuffix: Attribution.toDataSuffix({ codes: [builderCode] }),
     },
   };
+}
+
+export function buildDataSuffix(code: string): Hex {
+  return Attribution.toDataSuffix({ codes: [code] }) as Hex;
+}
+
+export function appendBuilderCodeToCalldata(calldata: Hex, code: string): Hex {
+  const suffix = buildDataSuffix(code);
+  return concatHex([calldata, suffix]);
 }
