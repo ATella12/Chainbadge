@@ -46,8 +46,8 @@ export default function MintPanel() {
     error: sendCallsError,
   } = useSendCalls();
   const callsStatusQuery = useCallsStatus({
-    id: callsId as `0x${string}`,
-    query: { enabled: Boolean(callsId), refetchInterval: 1500 },
+    id: (callsId?.id as unknown) as `0x${string}`,
+    query: { enabled: Boolean(callsId?.id), refetchInterval: 1500 },
   });
   const callsStatus = callsStatusQuery.data;
   const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({
