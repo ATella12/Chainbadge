@@ -36,14 +36,16 @@ export default function MintPanel({ isMiniApp }: MintPanelProps) {
   });
 
   const isWrongNetwork = isConnected && chainId !== base.id;
+  const farcasterConnector = useMemo(() => {
+    return connectors.find((connector) =>
+      connector.id.toLowerCase().includes('farcaster')
+    );
+  }, [connectors]);
   const displayConnectors = useMemo(() => {
-    return connectors.filter((connector) => {
-      if (!isMiniApp && connector.id.toLowerCase().includes('farcaster')) {
-        return false;
-      }
-      return true;
-    });
-  }, [connectors, isMiniApp]);
+    return connectors.filter(
+      (connector) => !connector.id.toLowerCase().includes('farcaster')
+    );
+  }, [connectors]);
 
   const handleMint = async () => {
     if (!badgeAddress || !isConnected) {
@@ -76,17 +78,37 @@ export default function MintPanel({ isMiniApp }: MintPanelProps) {
 
       {!isConnected && (
         <div className="mt-4 space-y-2">
-          {displayConnectors.map((connector) => (
+          {isMiniApp ? (
             <button
-              key={connector.id}
               type="button"
-              onClick={() => connect({ connector })}
-              disabled={isConnecting}
+              onClick={() => {
+                if (farcasterConnector) {
+                  connect({ connector: farcasterConnector });
+                }
+              }}
+              disabled={isConnecting || !farcasterConnector}
               className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 disabled:opacity-60"
             >
-              Connect with {connector.name}
+              Connect wallet
             </button>
-          ))}
+          ) : (
+            displayConnectors.map((connector) => (
+              <button
+                key={connector.id}
+                type="button"
+                onClick={() => connect({ connector })}
+                disabled={isConnecting}
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 transition hover:border-slate-300 disabled:opacity-60"
+              >
+                Connect with {connector.name}
+              </button>
+            ))
+          )}
+          {isMiniApp && !farcasterConnector && (
+            <p className="text-xs text-rose-600">
+              Farcaster wallet connector is unavailable.
+            </p>
+          )}
           {connectError && (
             <p className="text-xs text-rose-600">{connectError.message}</p>
           )}

@@ -7,11 +7,21 @@ import { APP_NAME, APP_URL } from '~/lib/constants';
 const baseRpcUrl =
   process.env.NEXT_PUBLIC_BASE_RPC_URL || 'https://mainnet.base.org';
 
-export function createWagmiConfig() {
+export function createMiniAppWagmiConfig() {
+  return createConfig({
+    chains: [base],
+    transports: {
+      [base.id]: http(baseRpcUrl),
+    },
+    ssr: true,
+    connectors: [farcasterMiniApp()],
+  });
+}
+
+export function createWebWagmiConfig() {
   const wcProjectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? '';
 
   const connectors = [
-    farcasterMiniApp(),
     injected(),
     ...(wcProjectId
       ? [
