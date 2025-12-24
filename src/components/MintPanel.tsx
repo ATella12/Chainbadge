@@ -12,14 +12,12 @@ import {
 import { base } from 'wagmi/chains';
 import { chainCheckBadgeAbi } from '~/abi/chainCheckBadgeAbi';
 import { badgeAddress } from '~/lib/badge';
+import { useIsMiniApp } from '~/lib/miniapp-context';
 
 const basescanBase = 'https://basescan.org/tx/';
 
-type MintPanelProps = {
-  isMiniApp: boolean;
-};
-
-export default function MintPanel({ isMiniApp }: MintPanelProps) {
+export default function MintPanel() {
+  const isMiniApp = useIsMiniApp();
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { connectors, connect, isPending: isConnecting, error: connectError } =

@@ -20,6 +20,7 @@ export function createMiniAppWagmiConfig() {
 
 export function createWebWagmiConfig() {
   const wcProjectId = process.env.NEXT_PUBLIC_WC_PROJECT_ID ?? '';
+  const iconUrl = `${APP_URL}/icon.png`;
 
   const connectors = [
     injected(),
@@ -31,6 +32,7 @@ export function createWebWagmiConfig() {
               name: APP_NAME,
               description: APP_NAME,
               url: APP_URL,
+              icons: [iconUrl],
             },
             showQrModal: true,
           }),

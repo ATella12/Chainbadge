@@ -5,6 +5,7 @@ import { sdk } from '@farcaster/miniapp-sdk';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { WagmiProvider } from 'wagmi';
 import { createMiniAppWagmiConfig, createWebWagmiConfig } from '~/lib/wagmi';
+import { MiniAppContext } from '~/lib/miniapp-context';
 
 async function isInMiniAppWithTimeout(ms: number) {
   return await Promise.race([
@@ -55,7 +56,9 @@ export function Providers({
   if (!config) {
     return (
       <QueryClientProvider client={queryClient}>
-        {children}
+        <MiniAppContext.Provider value={false}>
+          {children}
+        </MiniAppContext.Provider>
       </QueryClientProvider>
     );
   }
@@ -63,7 +66,9 @@ export function Providers({
   return (
     <WagmiProvider key={isMiniApp ? 'mini' : 'web'} config={config}>
       <QueryClientProvider client={queryClient}>
-        {children}
+        <MiniAppContext.Provider value={Boolean(isMiniApp)}>
+          {children}
+        </MiniAppContext.Provider>
       </QueryClientProvider>
     </WagmiProvider>
   );

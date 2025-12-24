@@ -254,7 +254,7 @@ export default function QuizApp() {
 
           {canMint(score) && (
             <div className="mt-6">
-              <MintPanel isMiniApp={isMiniApp} />
+              <MintPanel />
             </div>
           )}
 
