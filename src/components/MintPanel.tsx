@@ -10,7 +10,8 @@ import {
   useChainId,
 } from 'wagmi';
 import { base } from 'wagmi/chains';
-import { badgeAbi, badgeAddress } from '~/lib/badge';
+import { chainCheckBadgeAbi } from '~/abi/chainCheckBadgeAbi';
+import { badgeAddress } from '~/lib/badge';
 
 const basescanBase = 'https://basescan.org/tx/';
 
@@ -53,7 +54,7 @@ export default function MintPanel({ isMiniApp }: MintPanelProps) {
     }
     await writeContractAsync({
       address: badgeAddress,
-      abi: badgeAbi,
+      abi: chainCheckBadgeAbi,
       functionName: 'mint',
     });
   };

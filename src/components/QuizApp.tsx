@@ -13,7 +13,7 @@ import {
   Topic,
 } from '~/lib/types';
 import MintPanel from '~/components/MintPanel';
-import { APP_DESCRIPTION, APP_NAME } from '~/lib/constants';
+import { APP_NAME } from '~/lib/constants';
 
 const SCORE_MESSAGES: Array<{ min: number; message: string }> = [
   { min: 9, message: 'Outstanding! You are a chain whisperer.' },
