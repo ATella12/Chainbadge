@@ -2,13 +2,9 @@ import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import {
   APP_BUTTON_TEXT,
-  APP_DESCRIPTION,
-  APP_ICON_URL,
   APP_NAME,
-  APP_OG_IMAGE_URL,
   APP_PRIMARY_CATEGORY,
   APP_SPLASH_BACKGROUND_COLOR,
-  APP_SPLASH_URL,
   APP_TAGS,
   APP_URL,
   APP_ACCOUNT_ASSOCIATION,
@@ -23,12 +19,23 @@ export type MiniAppManifest = {
   miniapp: {
     version: string;
     name: string;
+    subtitle?: string;
+    description?: string;
     homeUrl: string;
     iconUrl: string;
     imageUrl: string;
+    heroImageUrl?: string;
     buttonTitle: string;
     splashImageUrl: string;
     splashBackgroundColor: string;
+    ogTitle?: string;
+    ogDescription?: string;
+    ogImageUrl?: string;
+    screenshotUrls?: string[];
+    primaryCategory?: string;
+    tags?: string[];
+    tagline?: string;
+    castShareUrl?: string;
     webhookUrl?: string;
   };
 };
@@ -38,24 +45,18 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function getMiniAppEmbedMetadata(ogImageUrl?: string) {
+  const embedImageUrl = ogImageUrl ?? `${APP_URL}/chainbadge.png`;
   return {
-    version: 'next',
-    imageUrl: ogImageUrl ?? APP_OG_IMAGE_URL,
-    ogTitle: APP_NAME,
-    ogDescription: APP_DESCRIPTION,
-    ogImageUrl: ogImageUrl ?? APP_OG_IMAGE_URL,
+    version: '1',
+    imageUrl: embedImageUrl,
     button: {
-      title: APP_BUTTON_TEXT,
+      title: APP_BUTTON_TEXT ?? 'Start Quiz',
       action: {
         type: 'launch_frame',
         name: APP_NAME,
         url: APP_URL,
-        splashImageUrl: APP_SPLASH_URL,
-        iconUrl: APP_ICON_URL,
+        splashImageUrl: embedImageUrl,
         splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
-        description: APP_DESCRIPTION,
-        primaryCategory: APP_PRIMARY_CATEGORY,
-        tags: APP_TAGS,
       },
     },
   };
@@ -68,12 +69,24 @@ export async function getFarcasterDomainManifest(): Promise<MiniAppManifest> {
     miniapp: {
       version: '1',
       name: APP_NAME ?? 'ChainCheck Quiz',
+      subtitle: 'True false blockchain quiz',
+      description:
+        'Answer 10 true or false questions across Bitcoin Ethereum BSC Base and Solana. Score 6 plus to mint a Base badge.',
       homeUrl: APP_URL,
       iconUrl: manifestImageUrl,
       imageUrl: manifestImageUrl,
+      heroImageUrl: manifestImageUrl,
       buttonTitle: APP_BUTTON_TEXT ?? 'Launch Mini App',
       splashImageUrl: manifestImageUrl,
       splashBackgroundColor: APP_SPLASH_BACKGROUND_COLOR,
+      ogTitle: 'ChainCheck Quiz',
+      ogDescription: 'Play the quiz and mint a badge on Base.',
+      ogImageUrl: manifestImageUrl,
+      screenshotUrls: [manifestImageUrl],
+      primaryCategory: APP_PRIMARY_CATEGORY,
+      tags: APP_TAGS,
+      tagline: 'Prove your chain knowledge',
+      castShareUrl: APP_URL,
     },
   };
 }
