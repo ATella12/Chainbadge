@@ -39,6 +39,7 @@
     "@walletconnect/ethereum-provider": "~2.21.1",
     "clsx": "^2.1.1",
     "next": "^15.0.3",
+    "ox": "^0.11.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "tailwind-merge": "^2.6.0",

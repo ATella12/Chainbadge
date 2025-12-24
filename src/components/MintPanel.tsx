@@ -12,11 +12,16 @@ import {
 import { base } from 'wagmi/chains';
 import { chainCheckBadgeAbi } from '~/abi/chainCheckBadgeAbi';
 import { badgeAddress } from '~/lib/badge';
+import {
+  getBuilderCode,
+  withBuilderCodeCapabilities,
+} from '~/lib/baseAttribution';
 import { useIsMiniApp } from '~/lib/miniapp-context';
 
 const basescanBase = 'https://basescan.org/tx/';
 
 export default function MintPanel() {
+  const builderCode = getBuilderCode();
   const isMiniApp = useIsMiniApp();
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
@@ -56,6 +61,7 @@ export default function MintPanel() {
       address: badgeAddress,
       abi: chainCheckBadgeAbi,
       functionName: 'mint',
+      ...withBuilderCodeCapabilities(builderCode),
     });
   };
 
