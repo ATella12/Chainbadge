@@ -1,6 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { questions } from '~/data/questions';
 import { initMiniAppSdk } from '~/lib/farcaster';
 import { canMint, filterQuestions, pickUniqueQuestions } from '~/lib/quiz';
@@ -119,8 +120,16 @@ export default function QuizApp() {
               {APP_NAME}
             </h1>
           </div>
-          <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
-            Base Mainnet Badge
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-800">
+              Base Mainnet Badge
+            </div>
+            <Link
+              href="/menu"
+              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 transition hover:border-slate-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-900"
+            >
+              Menu
+            </Link>
           </div>
         </div>
         {sdkChecked && !isMiniApp && (
