@@ -20,7 +20,7 @@ export function Providers({
   children: React.ReactNode;
 }) {
   const [queryClient] = useState(() => new QueryClient());
-  const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null);
+  const [isMiniApp, setIsMiniApp] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -47,21 +47,8 @@ export function Providers({
   }, []);
 
   const config = useMemo(() => {
-    if (isMiniApp === null) {
-      return null;
-    }
     return isMiniApp ? createMiniAppWagmiConfig() : createWebWagmiConfig();
   }, [isMiniApp]);
-
-  if (!config) {
-    return (
-      <QueryClientProvider client={queryClient}>
-        <MiniAppContext.Provider value={false}>
-          {children}
-        </MiniAppContext.Provider>
-      </QueryClientProvider>
-    );
-  }
 
   return (
     <WagmiProvider key={isMiniApp ? 'mini' : 'web'} config={config}>
