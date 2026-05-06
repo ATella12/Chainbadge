@@ -2,10 +2,17 @@ import { createConfig, http } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { farcasterMiniApp } from '@farcaster/miniapp-wagmi-connector';
 import { coinbaseWallet, injected, walletConnect } from 'wagmi/connectors';
+import { BUILDER_DATA_SUFFIX } from '~/lib/builderAttribution';
 import { APP_NAME, APP_URL } from '~/lib/constants';
 
 const baseRpcUrl =
   process.env.NEXT_PUBLIC_BASE_RPC_URL || 'https://mainnet.base.org';
+
+export const walletClientConfig = {
+  // Base Builder Codes are applied at the transaction layer via ERC-8021.
+  // Missing this suffix on a mined transaction permanently loses attribution.
+  dataSuffix: BUILDER_DATA_SUFFIX,
+} as const;
 
 export function createMiniAppWagmiConfig() {
   return createConfig({
@@ -15,6 +22,7 @@ export function createMiniAppWagmiConfig() {
     },
     ssr: true,
     connectors: [farcasterMiniApp()],
+    ...walletClientConfig,
   });
 }
 
@@ -48,5 +56,6 @@ export function createWebWagmiConfig() {
     },
     ssr: true,
     connectors,
+    ...walletClientConfig,
   });
 }

@@ -7,9 +7,9 @@ import {
   useConnect,
   useSwitchChain,
   useWaitForTransactionReceipt,
-  useWriteContract,
 } from 'wagmi';
 import { base } from 'wagmi/chains';
+import { useBuilderWriteContract } from '~/hooks/useBuilderWriteContract';
 import { useIsMiniApp } from '~/lib/miniapp-context';
 import { MENU_TX_VALUE, menuContracts, type MenuAction } from '~/lib/menuContracts';
 
@@ -32,7 +32,7 @@ export default function MenuActions() {
     error: connectError,
   } = useConnect();
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
-  const { writeContractAsync, isPending: isWriting } = useWriteContract();
+  const { writeContractAsync, isPending: isWriting } = useBuilderWriteContract();
 
   const [activeAction, setActiveAction] = useState<MenuAction | null>(null);
   const [txHash, setTxHash] = useState<`0x${string}` | null>(null);

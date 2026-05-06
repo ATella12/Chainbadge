@@ -7,45 +7,48 @@ import {
   useConnect,
   useCapabilities,
   useCallsStatus,
-  useSendCalls,
   useSwitchChain,
-  useSendTransaction,
   useWaitForTransactionReceipt,
   useChainId,
 } from 'wagmi';
 import { base } from 'wagmi/chains';
 import { chainCheckBadgeAbi } from '~/abi/chainCheckBadgeAbi';
 import { badgeAddress } from '~/lib/badge';
-import {
-  appendBuilderCodeToCalldata,
-  getBuilderCode,
-  withBuilderCodeCapabilities,
-} from '~/lib/baseAttribution';
+import { useBuilderSendCalls } from '~/hooks/useBuilderSendCalls';
+import { useBuilderSendTransaction } from '~/hooks/useBuilderSendTransaction';
 import { useIsMiniApp } from '~/lib/miniapp-context';
 
 const basescanBase = 'https://basescan.org/tx/';
 
 export default function MintPanel() {
-  const builderCode = getBuilderCode();
   const isMiniApp = useIsMiniApp();
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
   const { connectors, connect, isPending: isConnecting, error: connectError } =
     useConnect();
   const { data: capabilities } = useCapabilities({ chainId: base.id });
+  const dataSuffixCapability = (
+    capabilities as
+      | { dataSuffix?: { native?: boolean; supported?: boolean } | boolean }
+      | undefined
+  )?.dataSuffix;
+  const supportsDataSuffix =
+    dataSuffixCapability === true ||
+    (typeof dataSuffixCapability === 'object' &&
+      (dataSuffixCapability.supported === true || dataSuffixCapability.native === true));
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
   const {
     sendTransactionAsync,
     data: txHash,
     isPending: isSendingTx,
     error: sendTxError,
-  } = useSendTransaction();
+  } = useBuilderSendTransaction();
   const {
     sendCallsAsync,
     data: callsId,
     isPending: isSendingCalls,
     error: sendCallsError,
-  } = useSendCalls();
+  } = useBuilderSendCalls(supportsDataSuffix);
   const callsStatusQuery = useCallsStatus({
     id: (callsId?.id as unknown) as `0x${string}`,
     query: { enabled: Boolean(callsId?.id), refetchInterval: 1500 },
@@ -87,17 +90,15 @@ export default function MintPanel() {
         await sendCallsAsync({
           calls: [{ to: badgeAddress, data: baseData, value: 0n }],
           chainId: base.id,
-          ...withBuilderCodeCapabilities(builderCode),
         });
         return;
       } catch {
         // Fallback to a direct write if sendCalls isn't supported end-to-end.
       }
     }
-    const data = appendBuilderCodeToCalldata(baseData, builderCode);
     await sendTransactionAsync({
       to: badgeAddress,
-      data,
+      data: baseData,
       value: 0n,
       chainId: base.id,
     });
