@@ -16,6 +16,7 @@ import { chainCheckBadgeAbi } from '~/abi/chainCheckBadgeAbi';
 import { badgeAddress } from '~/lib/badge';
 import { useBuilderSendCalls } from '~/hooks/useBuilderSendCalls';
 import { useBuilderSendTransaction } from '~/hooks/useBuilderSendTransaction';
+import { supportsBuilderDataSuffix } from '~/lib/builderAttribution';
 import { useIsMiniApp } from '~/lib/miniapp-context';
 
 const basescanBase = 'https://basescan.org/tx/';
@@ -27,15 +28,7 @@ export default function MintPanel() {
   const { connectors, connect, isPending: isConnecting, error: connectError } =
     useConnect();
   const { data: capabilities } = useCapabilities({ chainId: base.id });
-  const dataSuffixCapability = (
-    capabilities as
-      | { dataSuffix?: { native?: boolean; supported?: boolean } | boolean }
-      | undefined
-  )?.dataSuffix;
-  const supportsDataSuffix =
-    dataSuffixCapability === true ||
-    (typeof dataSuffixCapability === 'object' &&
-      (dataSuffixCapability.supported === true || dataSuffixCapability.native === true));
+  const supportsDataSuffix = supportsBuilderDataSuffix(capabilities);
   const { switchChainAsync, isPending: isSwitching } = useSwitchChain();
   const {
     sendTransactionAsync,

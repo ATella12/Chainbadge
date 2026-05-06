@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useSendCalls } from 'wagmi';
 import {
-  withBuilderCodeCalls,
+  sendCallsWithBuilderCode,
   withBuilderCodeCapabilities,
 } from '~/lib/builderAttribution';
 
@@ -18,7 +18,7 @@ export function useBuilderSendCalls(walletHandlesDataSuffix: boolean) {
       const attributedVariables = withBuilderCodeCapabilities(
         {
           ...variables,
-          calls: withBuilderCodeCalls(variables.calls, walletHandlesDataSuffix),
+          calls: sendCallsWithBuilderCode(variables.calls, walletHandlesDataSuffix),
         },
         walletHandlesDataSuffix,
       ) as typeof variables;

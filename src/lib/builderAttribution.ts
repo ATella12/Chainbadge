@@ -9,7 +9,7 @@ import {
   type WalletClientConfig,
 } from 'viem';
 
-const DEFAULT_BUILDER_CODE = 'bc_0ecex30k';
+export const BUILDER_CODE = 'bc_0ecex30k';
 
 type AttributableTx = {
   data?: Hex;
@@ -19,15 +19,6 @@ type AttributableCall = AttributableTx & {
   dataSuffix?: Hex;
 };
 
-function getConfiguredBuilderCode() {
-  const code = process.env.NEXT_PUBLIC_BUILDER_CODE;
-  if (typeof code === 'string' && code.trim().length > 0) {
-    return code.trim();
-  }
-  return DEFAULT_BUILDER_CODE;
-}
-
-export const BUILDER_CODE = getConfiguredBuilderCode();
 export const BUILDER_DATA_SUFFIX = Attribution.toDataSuffix({
   codes: [BUILDER_CODE],
 }) as Hex;
@@ -53,6 +44,25 @@ function hasBuilderCode(data: Hex) {
   return Boolean(attribution?.codes.includes(BUILDER_CODE));
 }
 
+function assertHasBuilderAttribution(data: Hex, context: string) {
+  if (hasBuilderCode(data)) return;
+  const message = `${context} is missing Base Builder Code ${BUILDER_CODE}. Refusing to send unattributed transaction.`;
+  console.warn(message);
+  throw new Error(message);
+}
+
+export function supportsBuilderDataSuffix(capabilities: unknown) {
+  const dataSuffix = (capabilities as
+    | { dataSuffix?: { native?: boolean; supported?: boolean } | boolean }
+    | undefined)?.dataSuffix;
+
+  return (
+    dataSuffix === true ||
+    (typeof dataSuffix === 'object' &&
+      (dataSuffix.supported === true || dataSuffix.native === true))
+  );
+}
+
 export function withBuilderCode(txData: Hex = '0x'): Hex {
   // Base Builder Codes are ERC-8021 transaction-layer calldata suffixes.
   // If a transaction is mined without this suffix, attribution is permanently lost.
@@ -63,10 +73,12 @@ export function withBuilderCode(txData: Hex = '0x'): Hex {
 export function withBuilderCodeTransaction<T extends AttributableTx>(
   tx: T,
 ): T & { data: Hex } {
-  return {
+  const attributedTx = {
     ...tx,
     data: withBuilderCode(tx.data),
   };
+  assertHasBuilderAttribution(attributedTx.data, 'sendTransaction');
+  return attributedTx;
 }
 
 export function withBuilderCodeCall<T extends AttributableCall>(
@@ -74,10 +86,16 @@ export function withBuilderCodeCall<T extends AttributableCall>(
   walletHandlesDataSuffix: boolean,
 ): T {
   if (walletHandlesDataSuffix) {
-    return {
+    const attributedCall = {
       ...call,
       dataSuffix: call.dataSuffix ?? BUILDER_DATA_SUFFIX,
     };
+    if (!attributedCall.dataSuffix) {
+      const message = `sendCalls is missing Base Builder Code ${BUILDER_CODE} dataSuffix.`;
+      console.warn(message);
+      throw new Error(message);
+    }
+    return attributedCall;
   }
 
   return withBuilderCodeTransaction(call);
@@ -108,10 +126,31 @@ export function withBuilderCodeCapabilities<T extends { capabilities?: Record<st
 }
 
 export function withBuilderCodeWriteContract<T extends { dataSuffix?: Hex }>(tx: T): T {
-  return {
+  const attributedTx = {
     dataSuffix: BUILDER_DATA_SUFFIX,
     ...tx,
   };
+  if (!attributedTx.dataSuffix) {
+    const message = `writeContract is missing Base Builder Code ${BUILDER_CODE} dataSuffix.`;
+    console.warn(message);
+    throw new Error(message);
+  }
+  return attributedTx;
+}
+
+export function sendTransactionWithBuilderCode<T extends AttributableTx>(tx: T) {
+  return withBuilderCodeTransaction(tx);
+}
+
+export function writeContractWithBuilderCode<T extends { dataSuffix?: Hex }>(tx: T) {
+  return withBuilderCodeWriteContract(tx);
+}
+
+export function sendCallsWithBuilderCode<T extends readonly unknown[]>(
+  calls: T,
+  walletHandlesDataSuffix: boolean,
+) {
+  return withBuilderCodeCalls(calls, walletHandlesDataSuffix);
 }
 
 export function createBuilderWalletClient<
@@ -131,8 +170,8 @@ export function createBuilderWalletClient<
 
   return Object.assign(client, {
     sendTransaction: (tx: Parameters<typeof client.sendTransaction>[0]) =>
-      sendTransaction(withBuilderCodeTransaction(tx)),
+      sendTransaction(sendTransactionWithBuilderCode(tx)),
     writeContract: (tx: Parameters<typeof client.writeContract>[0]) =>
-      writeContract(withBuilderCodeWriteContract(tx)),
+      writeContract(writeContractWithBuilderCode(tx)),
   });
 }

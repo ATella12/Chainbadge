@@ -1,4 +1,5 @@
 import { ethers } from 'hardhat';
+import { sendTransactionWithBuilderCode } from './builderAttribution';
 
 async function main() {
   const maxSupply = process.env.MAX_SUPPLY
@@ -10,10 +11,16 @@ async function main() {
   }
 
   const Badge = await ethers.getContractFactory('ChainCheckBadge');
-  const badge = await Badge.deploy(maxSupply);
-  await badge.waitForDeployment();
+  const deployTx = await Badge.getDeployTransaction(maxSupply);
+  const signer = await ethers.provider.getSigner();
+  const tx = await signer.sendTransaction(sendTransactionWithBuilderCode(deployTx));
+  const receipt = await tx.wait();
 
-  console.log('ChainCheckBadge deployed to:', await badge.getAddress());
+  if (!receipt?.contractAddress) {
+    throw new Error('Deployment transaction did not produce a contract address');
+  }
+
+  console.log('ChainCheckBadge deployed to:', receipt.contractAddress);
 }
 
 main().catch((error) => {

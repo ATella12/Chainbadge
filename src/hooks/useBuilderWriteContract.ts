@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useWriteContract } from 'wagmi';
-import { withBuilderCodeWriteContract } from '~/lib/builderAttribution';
+import { writeContractWithBuilderCode } from '~/lib/builderAttribution';
 
 type WriteContractAsync = ReturnType<typeof useWriteContract>['writeContractAsync'];
 
@@ -13,7 +13,7 @@ export function useBuilderWriteContract() {
       // viem appends dataSuffix to encoded contract calldata before sending,
       // keeping Builder Code attribution out of individual call sites.
       return writeContractAsync(
-        withBuilderCodeWriteContract(variables) as never,
+        writeContractWithBuilderCode(variables) as never,
         options as never,
       );
     },
